@@ -1,5 +1,5 @@
 LEX		= flex
-CFLAGS	= -Wall
+CFLAGS	= -Wall -DDEBUG
 
 all: calculator
 
@@ -8,10 +8,10 @@ all: calculator
 calculator: calculator.o
 	$(CC) -o $@ $(LDFLAGS) $^
 
-calculator.o: calculator.c
+calculator.o: calculator.yy.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ -c $^
 
-calculator.c: calculator.yy
+calculator.yy.c: calculator.yy
 	$(LEX) $(LFLAGS) -o $@ $^
 
 

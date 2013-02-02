@@ -3,6 +3,15 @@
 #include <stdbool.h>
 #include "tokens.h"
 
+#define __stringify(s)  #s
+#define stringify(s)    __stringify(s)
+
+#ifdef DEBUG
+#define dprintf(format, ...)    fprintf(stderr, __FILE__ "(" stringify(__LINE__) "): " format, __VA_ARGS__)
+#else
+#define dprintf(format, ...)
+#endif
+
 #define STACK_SIZE  16
 
 static double current_num = 0.0;
@@ -39,9 +48,12 @@ letter      [a-zA-Z]
 int yywrap(void) { return 1; }
 
 int main(int argc, char** argv) {
-    stack_entry_t stack[STACK_SIZE] = {0};
+    stack_entry_t stack[STACK_SIZE];
     int r = 0, stack_len = 0;
     bool done = false;
+
+    // Zero out stack.
+    memset(stack, 0, sizeof(stack));
 
     if ( argc > 1 ) {
         yyin = fopen(argv[1], "r");
@@ -57,10 +69,10 @@ int main(int argc, char** argv) {
         }
 
         stack[stack_len].token = r;
-        printf("Got token with id %d\n", r);
+        dprintf("Got token with id %d\n", r);
 
         if( NUMBER == r ) {
-            printf("Got number: %.2f\n", current_num);
+            dprintf("Got number: %.2f\n", current_num);
             stack[stack_len].number = current_num;
         }
 
@@ -77,7 +89,7 @@ int main(int argc, char** argv) {
                 done = true;
                 break;
 
-            case NUMBER;
+            case NUMBER:
                 break;
 
             case PRINT:
