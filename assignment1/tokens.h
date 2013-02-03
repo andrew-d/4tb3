@@ -1,3 +1,6 @@
+#ifndef _TOKENS_H
+#define _TOKENS_H
+
 #define NUMBER              1
 #define PLUS                2
 #define MINUS               3
@@ -9,6 +12,6 @@
 #define CLEAR               13
 #define DUPLICATE           14
 
-
 #define UNKNOWN             255
 
+#endif

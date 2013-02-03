@@ -5,11 +5,8 @@ all: calculator
 
 
 
-calculator: calculator.o
+calculator: calculator.o calculator.yy.o
 	$(CC) -o $@ $(LDFLAGS) $^
-
-calculator.o: calculator.yy.c
-	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ -c $^
 
 calculator.yy.c: calculator.yy
 	$(LEX) $(LFLAGS) -o $@ $^
@@ -24,4 +21,4 @@ test_calculator:
 
 
 clean:
-	$(RM) *.o calculator calculator.c
+	$(RM) *.o *.yy.c calculator
