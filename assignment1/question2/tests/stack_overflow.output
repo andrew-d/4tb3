@@ -1,0 +1,5 @@
+{
+    "return_code": 2,
+    "stdout": "",
+    "stderr": "Stack overflow\n"
+}
