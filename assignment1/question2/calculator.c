@@ -21,12 +21,13 @@
 double stack[STACK_SIZE];
 
 /* Current stack pointer, pointer past end of stack */
-double* stack_ptr = &stack[-1];
+#define stack_begin     (&stack[-1])
 double* stack_end = &stack[STACK_SIZE - 1];
+double* stack_ptr = stack_begin;
 
 /* Macros that test whether our stack is full */
-#define is_full()      (stack_ptr == stack_end)
-#define is_empty()     (stack_ptr == (&stack[-1]))
+#define is_full()       (stack_ptr == stack_end)
+#define is_empty()      (stack_ptr == stack_begin)
 
 /* Stuff that we need for flex */
 double current_num = 0.0;
@@ -127,10 +128,10 @@ int main(int argc, char** argv) {
                 break;
 
             case PRINT_ALL:
-                // TODO: fixme
-                for( curr == stack_ptr; curr != (&stack[-1]); curr-- ) {
+                for( curr = stack_ptr;
+                        curr != stack_begin;
+                        curr-- ) {
                     printf("%f\n", *curr);
-                    fflush(stdout);
                 }
                 break;
 
