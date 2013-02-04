@@ -1,5 +1,5 @@
 LEX		= flex
-CFLAGS	= -Wall -DDEBUG
+CFLAGS	= -Wall
 
 all: calculator
 
