@@ -13,10 +13,8 @@ calculator.yy.c: calculator.yy
 
 
 
-test: test_calculator
-
-test_calculator:
-	./test_calculator.sh
+test:
+	python test.py
 
 
 

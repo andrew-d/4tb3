@@ -7,11 +7,15 @@ extern double current_num;
 %}
 
 digit       [0-9]
+hexdigit    [0-9A-Fa-f]
 letter      [a-zA-Z]
+exponent    [e]
 
 %%
 
-{digit}+"."{digit}* { current_num = atof(yytext);
+"-"{0,1}{digit}+"."{digit}* { current_num = atof(yytext);
+                      return NUMBER;        }
+"-"{0,1}("0x"|"0X"){hexdigit}+"."{hexdigit}* { current_num = atof(yytext);
                       return NUMBER;        }
 
 "+"                 { return PLUS;          }
