@@ -15,7 +15,11 @@ bin_exp     [pP]
 
 signed_integer  {sign}?{digit}+
 exponent_part   {exp}{signed_integer}
-decimal_float   ({digit}+"."{digit}*{exponent_part}?{float_suff}?)|("."{exponent_part}?{float_suff}?)|({digit}+{exponent_part}{float_suff}?)|({digit}+{exponent_part}?{float_suff})
+decimal_float_1 {digit}+"."{digit}*{exponent_part}?{float_suff}?
+decimal_float_2 "."{digit}+{exponent_part}?{float_suff}?
+decimal_float_3 {digit}+{exponent_part}{float_suff}?
+decimal_float_4 {digit}+{exponent_part}?{float_suff}
+decimal_float   ({decimal_float_1})|({decimal_float_2})|({decimal_float_3})|({decimal_float_4})
 
 hex_start       ("0x")|("0X")
 hex_numeral     {hex_start}{hexdigit}+
@@ -25,22 +29,21 @@ hex_float       {hex_signif}{binary_exponent}{float_suff}?
 
 %%
 
-{decimal_float}     { current_num = atof(yytext);
-                      return NUMBER;        }
-{hex_float}         { current_num = atof(yytext);
-                      return NUMBER;        }
+{sign}?{hex_float}      { current_num = atof(yytext);
+                          return NUMBER;        }
 
-"+"                 { return PLUS;          }
-"-"                 { return MINUS;         }
-"*"                 { return TIMES;         }
-"p"                 { return PRINT;         }
-"n"                 { return PRINT_POP;     }
-"f"                 { return PRINT_ALL;     }
-"c"                 { return CLEAR;         }
-"d"                 { return DUPLICATE;     }
-[ \t\n\r]           /* Skip all whitespace. */
-.                   { fprintf(stderr, "Unknown character encountered while parsing: %c\n", yytext[0]);
-                       return UNKNOWN;      }
+{sign}?{decimal_float}  { current_num = atof(yytext);
+                          return NUMBER;        }
+
+"+"                     { return PLUS;          }
+"-"                     { return MINUS;         }
+"*"                     { return TIMES;         }
+"p"                     { return PRINT;         }
+"n"                     { return PRINT_POP;     }
+"f"                     { return PRINT_ALL;     }
+"c"                     { return CLEAR;         }
+"d"                     { return DUPLICATE;     }
+[ \t\n\r]               /* Skip all whitespace. */
 
 
 %%

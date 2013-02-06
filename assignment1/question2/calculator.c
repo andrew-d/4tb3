@@ -136,7 +136,7 @@ int main(int argc, char** argv) {
                 break;
 
             default:
-                fprintf(stderr, "Got an unknown token: %d", tok);
+                fprintf(stderr, "Got an unknown token: %d\n", tok);
                 exit(4);
                 break;
 
