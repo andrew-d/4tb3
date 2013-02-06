@@ -8,14 +8,26 @@ extern double current_num;
 
 digit       [0-9]
 hexdigit    [0-9A-Fa-f]
-letter      [a-zA-Z]
-exponent    [e]
+sign        [\-+]
+float_suff  [fFdD]
+exp         [eE]
+bin_exp     [pP]
+
+signed_integer  {sign}?{digit}+
+exponent_part   {exp}{signed_integer}
+decimal_float   ({digit}+"."{digit}*{exponent_part}?{float_suff}?)|("."{exponent_part}?{float_suff}?)|({digit}+{exponent_part}{float_suff}?)|({digit}+{exponent_part}?{float_suff})
+
+hex_start       ("0x")|("0X")
+hex_numeral     {hex_start}{hexdigit}+
+hex_signif      ({hex_numeral})|({hex_numeral}".")|({hex_start}{hexdigit}*"."{hexdigit}+)
+binary_exponent {bin_exp}{signed_integer}
+hex_float       {hex_signif}{binary_exponent}{float_suff}?
 
 %%
 
-"-"{0,1}{digit}+"."{digit}* { current_num = atof(yytext);
+{decimal_float}     { current_num = atof(yytext);
                       return NUMBER;        }
-"-"{0,1}("0x"|"0X"){hexdigit}+"."{hexdigit}* { current_num = atof(yytext);
+{hex_float}         { current_num = atof(yytext);
                       return NUMBER;        }
 
 "+"                 { return PLUS;          }
