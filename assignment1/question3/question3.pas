@@ -441,6 +441,8 @@ begin
     for tmp_trans in transitions do
         all_states := all_states + [tmp_trans.source, tmp_trans.target];
 
+    (* Remove states that are completely unreachable *)
+    RemoveUnreachable();
     PrintState();
 
     (* Remove nondistinguishable states *)
@@ -448,8 +450,8 @@ begin
     MinimizeDFA();
     PrintState();
 
-    (* Remove unreachable states x 2*)
-    (* writeln('Removing unreachable states (2nd time)...'); *)
+    (* Remove unreachable states *)
+    (* writeln('Removing unreachable states...'); *)
     RemoveUnreachable();
     PrintState();
 
