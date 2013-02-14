@@ -9,7 +9,9 @@ import subprocess
 curr_dir = os.path.abspath(os.path.dirname(__file__))
 prog = os.path.join(curr_dir, 'calculator')
 
-class stats: pass
+class stats(object):
+    pass
+
 stats.tests = 0
 stats.asserts = 0
 stats.successes = 0
