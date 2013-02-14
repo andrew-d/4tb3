@@ -6,7 +6,6 @@ const
 type
     State = 0..20;
     StateSet = set of State;
-    StateArray = array of State;
     Token = 'a'..'z';
     Transition = record
                     source : State;
@@ -17,7 +16,7 @@ type
 
 var
     initial_state : State;
-    final_states  : StateArray;
+    final_states  : StateSet;
     transitions   : TransitionList;
 
     all_states    : StateSet;
@@ -37,11 +36,10 @@ begin
     readln(initial_state);
 
     (* Read all final states *)
-    SetLength(final_states, 0);
+    final_states := [];
     repeat
         read(temp_state);
-        SetLength(final_states, Length(final_states) + 1);
-        final_states[Length(final_states) - 1] := temp_state
+        Include(final_states, temp_state);
     until eoln;
 
     (* Read all transitions *)
@@ -95,7 +93,7 @@ var
     p : Transition;
 
     new_transitions : TransitionList;
-    new_final       : StateArray;
+    new_final       : StateSet;
 
 begin
     reachable_states := [initial_state];
@@ -134,13 +132,12 @@ begin
     transitions := new_transitions;
 
     (* Remove all final states that are unreachable. *)
-    SetLength(new_final, 0);
+    new_final := [];
     for q in final_states do
     begin
         if (q in reachable_states) then
         begin
-            SetLength(new_final, Length(new_final) + 1);
-            new_final[Length(new_final) - 1] := q;
+            Include(new_final, q);
         end;
     end;
 
@@ -152,11 +149,28 @@ end;
 
 
 procedure MinimizeDFA();
+type
+    DependencyNodePtr = ^DependencyNode;
+    DependencyNode = Record
+        src1 : State;
+        src2 : State;
+
+        dst1 : State;
+        dst2 : State;
+
+        next : DependencyNodePtr;
+    End;
+
 var
     mark_list           : array of integer;
-    i, j                : State;
+    p, q, r, s          : State;
+    t                   : Transition;
+    found_r, found_s    : boolean;
     tmp, tmp2           : State;
     unmarked, marked    : integer;
+    a                   : Token;
+
+    dependency_list     : DependencyNodePtr;
 
     procedure SetMark(var state1 : State; var state2 : State; var b : integer);
     var
@@ -178,29 +192,178 @@ var
         GetMark := mark_list[idx1] or mark_list[idx2];
     end;
 
+    procedure InitDependencyList();
+    begin
+        New(dependency_list);
+        dependency_list^.next := nil;
+    end;
+
+    procedure AddDependency(var src1 : State; var src2 : State; var dst1 : State; var dst2 : State);
+    var
+        new_node : DependencyNodePtr;
+
+    begin
+        New(new_node);
+
+        new_node^.src1 := src1;
+        new_node^.src2 := src2;
+        new_node^.dst1 := dst1;
+        new_node^.dst2 := dst2;
+
+        (* Prepend this node to the dependency list *)
+        new_node^.next := dependency_list^.next;
+        dependency_list^.next := new_node;
+    end;
+
+    (* Find and remove a dependency of state *)
+    function FindDependency(var src1 : State; var src2 : State) : DependencyNodePtr;
+    var
+        curr, last : DependencyNodePtr;
+    begin
+        FindDependency := nil;
+        curr := dependency_list^.next;
+        last := dependency_list;
+
+        while curr <> nil do
+        begin
+            (* If the current p and q matches. *)
+            if ((src1 = curr^.src1) and (src2 = curr^.src2)) then
+            begin
+                (* Remove from list *)
+                last^.next := curr^.next;
+
+                (* Return current pointer *)
+                FindDependency := curr;
+                Break;
+            end;
+
+            (* Next item in list *)
+            last := curr;
+            curr := curr^.next;
+        end;
+    end;
+
+    procedure RecursiveMark(var p : State; var q : State);
+    var
+        next_dep : DependencyNodePtr;
+
+    begin
+        SetMark(p, q, marked);
+
+        next_dep := FindDependency(p, q);
+        while next_dep <> nil do
+        begin
+            writeln('    recursively marking (', next_dep^.dst1, ', ', next_dep^.dst2, ')');
+            RecursiveMark(next_dep^.dst1, next_dep^.dst2);
+            next_dep := FindDependency(p, q);
+        end;
+    end;
+
 begin
     unmarked := 0;
     marked := 1;
 
     (* All states start as unmarked *)
     SetLength(mark_list, NumberOfStates * NumberOfStates);
-    for i := 0 to NumberOfStates - 1 do
+    for p := 0 to NumberOfStates - 1 do
     begin
-        for j := 0 to NumberOfStates - 1 do
+        for q := 0 to NumberOfStates - 1 do
         begin
-            tmp := i;
-            tmp2 := j;      (* I get a strange error otherwise... *)
+            tmp := p;
+            tmp2 := q;      (* I get a strange error otherwise... *)
             SetMark(tmp, tmp2, unmarked);
         end;
     end;
 
+    (* All dependencies start empty *)
+    InitDependencyList();
+
     (* Mark pairs of final and nonfinal states *)
-    for i in final_states do
+    for p in final_states do
     begin
-        for j in all_states do
+        for q in all_states do
         begin
+            if (p <> q) then
+            begin
+                writeln(' marking initial (', p, ', ', q, ')');
+                SetMark(p, q, marked);
+            end;
         end;
     end;
+
+    (* For each unmarked pair (p,q) and symbol a:
+        1. Let r = the transition from p given a
+           Let s = the transition from q given a
+        2. If (r, s) unmarked, add (p, q) to (r, s)'s dependencies
+        3. Otherwise, mark (p, q) and recursively mark all dependencies of
+           newly-marked entries.
+    *)
+    writeln(' running marking check...');
+    for p in all_states do
+    begin
+        for q in all_states do
+        begin
+            (* Check if unmarked.  Note the p < q since this is a diagonal matrix *)
+            if ((p < q) and (GetMark(p, q) = unmarked)) then
+            begin
+                (* For each symbol... *)
+                for a in Token do
+                begin
+                    (* Find a transition from the sources, given a *)
+                    found_r := false;
+                    found_s := false;
+
+                    for t in transitions do
+                    begin
+                        if ((t.token = a) and (t.source = p)) then
+                        begin
+                            r := t.target;
+                            found_r := true;
+                        end;
+                        if ((t.token = a) and (t.source = q)) then
+                        begin
+                            s := t.target;
+                            found_s := true;
+                        end;
+                    end;
+
+                    (* Check the mark for (r, s) *)
+                    if (found_r and found_s) then
+                    begin
+                        writeln('  r = ', r, ', s = ', s);
+                        if (GetMark(r, s) = unmarked) then
+                        begin
+                            writeln('   unmarked, adding dependency from (', r, ', ', s, ') --> (', p, ', ', q, ')');
+                            (* (r, s) unmarked *)
+                            AddDependency(r, s, p, q);
+                        end else
+                        begin
+                            writeln('   marked, recursively marking (', p, ', ', q, ')');
+                            (* (r, s) marked, so mark (p, q) and all dependencies
+                               of things that are marked
+                            *)
+                            RecursiveMark(p, q);
+                        end;
+                    end;
+                end;
+            end;
+        end;
+    end;
+
+    (* Print mark status *)
+    for p in all_states do
+    begin
+        for q in all_states do
+        begin
+            writeln('Mark state of (', p, ',', q, ') is ', GetMark(p, q));
+        end;
+    end;
+
+    (* Coalesce unmarked pairs of states.
+       We do this by looping through the mark set and adding all states that are
+       marked, and then going through and creating new sets for each pair in increasing
+       number from the highest marked set.
+    *)
 end;
 
 
@@ -222,11 +385,13 @@ begin
 
     PrintState();
 
-    (* Remove unreachable states *)
-    writeln('Removing unreachable states...');
-    RemoveUnreachable();
+    (* Remove nondistinguishable states *)
+    writeln('Minimizing DFA...');
+    MinimizeDFA();
     PrintState();
 
-    (* Remove nondistinguishable states *)
-
+    (* Remove unreachable states x 2*)
+    writeln('Removing unreachable states (2nd time)...');
+    RemoveUnreachable();
+    PrintState();
 end.
