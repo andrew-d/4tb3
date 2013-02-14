@@ -60,6 +60,8 @@ var
     i : State;
 
 begin
+    exit;
+
     writeln('------------------------------');
     write('All states: ');
     for i in all_states do
@@ -253,10 +255,41 @@ var
         next_dep := FindDependency(p, q);
         while next_dep <> nil do
         begin
-            writeln('    recursively marking (', next_dep^.dst1, ', ', next_dep^.dst2, ')');
+            (* writeln('    recursively marking (', next_dep^.dst1, ', ', next_dep^.dst2, ')'); *)
             RecursiveMark(next_dep^.dst1, next_dep^.dst2);
             next_dep := FindDependency(p, q);
         end;
+    end;
+
+    procedure RemoveDuplicateTransitions();
+    var
+        new_transitions     : TransitionList;
+        t, u                : Transition;
+        found               : boolean;
+
+    begin
+        SetLength(new_transitions, 0);
+        for t in transitions do
+        begin
+            found := false;
+
+            for u in new_transitions do
+            begin;
+                if ((t.source = u.source) and (t.target = u.target) and (t.token = u.token)) then
+                    found := true
+            end;
+
+            if (not found) then
+            begin
+                SetLength(new_transitions, Length(new_transitions) + 1);
+                new_transitions[Length(new_transitions) - 1] := t;
+            end else
+            begin
+                (* writeln('Not including duplicate transition ', t.source, ' --> ', t.token, ' --> ', t.target); *)
+            end;
+        end;
+
+        transitions := new_transitions;
     end;
 
 begin
@@ -285,7 +318,7 @@ begin
         begin
             if (p <> q) then
             begin
-                writeln(' marking initial (', p, ', ', q, ')');
+                (* writeln(' marking initial (', p, ', ', q, ')'); *)
                 SetMark(p, q, marked);
             end;
         end;
@@ -298,7 +331,7 @@ begin
         3. Otherwise, mark (p, q) and recursively mark all dependencies of
            newly-marked entries.
     *)
-    writeln(' running marking check...');
+    (* writeln(' running marking check...'); *)
     for p in all_states do
     begin
         for q in all_states do
@@ -330,15 +363,15 @@ begin
                     (* Check the mark for (r, s) *)
                     if (found_r and found_s) then
                     begin
-                        writeln('  r = ', r, ', s = ', s);
+                        (* writeln('  r = ', r, ', s = ', s); *)
                         if (GetMark(r, s) = unmarked) then
                         begin
-                            writeln('   unmarked, adding dependency from (', r, ', ', s, ') --> (', p, ', ', q, ')');
+                            (* writeln('   unmarked, adding dependency from (', r, ', ', s, ') --> (', p, ', ', q, ')'); *)
                             (* (r, s) unmarked *)
                             AddDependency(r, s, p, q);
                         end else
                         begin
-                            writeln('   marked, recursively marking (', p, ', ', q, ')');
+                            (* writeln('   marked, recursively marking (', p, ', ', q, ')'); *)
                             (* (r, s) marked, so mark (p, q) and all dependencies
                                of things that are marked
                             *)
@@ -350,20 +383,45 @@ begin
         end;
     end;
 
-    (* Print mark status *)
-    for p in all_states do
-    begin
-        for q in all_states do
-        begin
-            writeln('Mark state of (', p, ',', q, ') is ', GetMark(p, q));
-        end;
-    end;
-
     (* Coalesce unmarked pairs of states.
        We do this by looping through the mark set and adding all states that are
        marked, and then going through and creating new sets for each pair in increasing
        number from the highest marked set.
     *)
+    for p in all_states do
+    begin
+        for q in all_states do
+        begin
+            if ((p < q) and (GetMark(p, q) = unmarked)) then
+            begin
+                (* writeln(' pair (', p, ', ', q, ') is unmarked'); *)
+
+                if (initial_state = q) then
+                    initial_state := p;
+
+                (* Remove the higher state (q) from our list of all states *)
+                Exclude(all_states, q);
+
+                (* If either is final, then we make the lower one final. *)
+                if ((p in final_states) or (q in final_states)) then
+                    Include(final_states, p);
+                Exclude(final_states, q);
+
+                (* Finally, go through all transitions and make the transition point
+                   to the lower state *)
+                for i := 1 to Length(transitions) - 1 do
+                begin
+                    if (transitions[i].source = q) then
+                        transitions[i].source := p;
+                    if (transitions[i].target = q) then
+                        transitions[i].target := p;
+                end;
+            end;
+        end;
+    end;
+
+    (* The above coalesceing might have resulted in duplicate transitions.  Fix this. *)
+    RemoveDuplicateTransitions();
 end;
 
 
@@ -386,12 +444,20 @@ begin
     PrintState();
 
     (* Remove nondistinguishable states *)
-    writeln('Minimizing DFA...');
+    (* writeln('Minimizing DFA...'); *)
     MinimizeDFA();
     PrintState();
 
     (* Remove unreachable states x 2*)
-    writeln('Removing unreachable states (2nd time)...');
+    (* writeln('Removing unreachable states (2nd time)...'); *)
     RemoveUnreachable();
     PrintState();
+
+    (* Print final state machine *)
+    writeln(initial_state);
+    for tmp_state in final_states do
+        write(tmp_state, ' ');
+    writeln('');
+    for tmp_trans in transitions do
+        writeln(tmp_trans.source, ' ', tmp_trans.token, ' ', tmp_trans.target);
 end.
