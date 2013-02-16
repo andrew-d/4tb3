@@ -140,6 +140,9 @@ begin
         if (q in reachable_states) then
         begin
             Include(new_final, q);
+        end else
+        begin
+            (* writeln('Removing unreachable state: ', q); *)
         end;
     end;
 
@@ -174,6 +177,7 @@ var
 
     dependency_list     : DependencyNodePtr;
 
+    (* Note: marks are set when two states are known to not be equivalent *)
     procedure SetMark(var state1 : State; var state2 : State; var b : integer);
     var
         idx : integer;
@@ -318,8 +322,14 @@ begin
         begin
             if (p <> q) then
             begin
-                (* writeln(' marking initial (', p, ', ', q, ')'); *)
-                SetMark(p, q, marked);
+                if (not (q in final_states)) then
+                begin
+                    (* writeln(' marking initial (', p, ', ', q, ')'); *)
+                    SetMark(p, q, marked);
+                end else
+                begin
+                    (* writeln(' not marking (', p, ', ', q, ') since q in final_states'); *)
+                end;
             end;
         end;
     end;
@@ -366,12 +376,12 @@ begin
                         (* writeln('  r = ', r, ', s = ', s); *)
                         if (GetMark(r, s) = unmarked) then
                         begin
-                            (* writeln('   unmarked, adding dependency from (', r, ', ', s, ') --> (', p, ', ', q, ')'); *)
+                            (* writeln('   (', p, ', ', q, ') unmarked, adding dependency from (', r, ', ', s, ') --> (', p, ', ', q, ')'); *)
                             (* (r, s) unmarked *)
                             AddDependency(r, s, p, q);
                         end else
                         begin
-                            (* writeln('   marked, recursively marking (', p, ', ', q, ')'); *)
+                            (* writeln('   (', p, ', ', q, ') marked, recursively marking (', p, ', ', q, ')'); *)
                             (* (r, s) marked, so mark (p, q) and all dependencies
                                of things that are marked
                             *)
