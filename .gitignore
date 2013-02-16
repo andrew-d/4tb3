@@ -1,2 +1,4 @@
 *.o
 *.yy.c
+.DS_Store
+*.pyc
