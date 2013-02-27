@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Comp Sci 4TB3 - Bonus Assignment 1 - Question 1</title>
+        <meta name="viewport" content="width=device-width">
+
+        <!-- Include jQuery to make manipulating the DOM easier -->
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+
+        <style>
+            #ccnum {
+                width: 200px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div style="width: 800px; margin: 0 auto;">
+            <form id='ccform'>
+                <label for="ccnum">Credit card number to validate:</label>
+                <input id="ccnum" type="text" placeholder="Credit Card #" required autofocus pattern="\d+"/>
+
+                <input type="submit" text="Validate">
+            </form>
+
+            <div id='status' style="width: 200px; background-color: white; margin-top: 10px;">
+                &laquo;Status will go here&raquo;
+            </div>
+        </div>
+
+        <script type="text/javascript">
+            // Wait for the DOM to load.
+            $(function() {
+                // Bind to the form's submit.
+                $('#ccform').on('submit', function(e) {
+                    // Prevent the event from actually submitting the form.
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // Run the validation algorithm.
+                    var cc_number = $('#ccnum').val();
+                    if( isCCValid(cc_number) ) {
+                        // Good!
+                        $('#status').html('Valid').css('background-color', 'LawnGreen');
+                    } else {
+                        // Bad :-(
+                        $('#status').html('Invalid').css('background-color', 'red');
+                    }
+                });
+            });
+
+            // Regexes.
+            var DIGIT_RE = /^\d+$/;
+            var VISA_RE = /^4(\d{15}|\d{12})$/;
+            var MASTERCARD_RE = /^5[1-5]\d{14}$/;
+            var AMEX_RE = /^(34|37)\d{13}$/;
+
+            // Check if a credit card number is valid.
+            function isCCValid(cc_number) {
+                // If it has anything except numbers, it's invalid.
+                if( !DIGIT_RE.exec(cc_number) ) {
+                    console.log("[!] Invalid because number contains non-digit characters");
+                    return false;
+                }
+
+                // Check the three major card types.
+                if( VISA_RE.exec(cc_number) ) {
+                    console.log("[*] Matches a Visa card format");
+                } else if( MASTERCARD_RE.exec(cc_number) ) {
+                    console.log("[*] Matches a MasterCard card format");
+                } else if( AMEX_RE.exec(cc_number) ) {
+                    console.log("[*] Matches a American Express card format");
+                } else {
+                    console.log("[!] Invalid because it does not match a valid card format!");
+                    return false;
+                }
+
+                // Perform the Luhn check.
+                var digits = cc_number.split('').reverse();
+                var even = false;
+                var sum = 0;
+
+                for( var i = 0; i < digits.length; i++ ) {
+                    var digit = parseInt(digits[i], 10);
+                    if( even ) {
+                        digit *= 2;
+                    }
+                    even = !even;
+
+                    if( digit > 9 ) {
+                        digit -= 9;
+                    }
+
+                    sum += digit;
+                }
+
+                // Valid if the Luhn check passes - i.e. if the sum is a multiple of 10.
+                return ((sum % 10) == 0);
+            }
+
+            // ----------------------------------------------------------------------
+            // Tests.  The "debugger" statement causes Chrome / FF to break to the
+            // integrated Javascript debugger.
+            function assert_valid(number, is_valid) {
+                var res = isCCValid(number);
+                if( res !== is_valid ) {
+                    debugger;
+                    // alert("Test failed: " + number + " should return: " + is_valid);
+                }
+            }
+
+            // VISA card numbers
+            assert_valid('4111111111111111', true);
+            assert_valid('4012888888881881', true);
+            assert_valid('4222222222222', true);
+
+            assert_valid('4222222222223', false);
+
+            // AMEX numbers
+            assert_valid('378282246310005', true);
+            assert_valid('371449635398431', true);
+            assert_valid('378734493671000', true);
+
+            assert_valid('378734493671001', false);
+
+            // MasterCard number
+            assert_valid('5555555555554444', true);
+
+            assert_valid('5555555555554445', false);
+        </script>
+    </body>
+</html>
