@@ -2,3 +2,4 @@
 *.yy.c
 .DS_Store
 *.pyc
+*.ppu
