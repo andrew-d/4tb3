@@ -465,6 +465,7 @@ begin {Parser}
       Halt(1);
   end
   else
+  begin
       Halt(0);
-  end;
+  end
 end.
