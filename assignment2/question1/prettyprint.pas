@@ -48,7 +48,7 @@ uses scanner, symboltable, riscgenerator, risc;
       GeqSym:       begin write(' >= ') end;
       LssSym:       begin write(' < ') end;
       LeqSym:       begin write(' <= ') end;
-      NotSym:       begin write(' <> ') end;
+      NeqSym:       begin write(' <> ') end;
 
       PlusSym:      begin write(' + ') end;
       MinusSym:     begin write(' - ') end;
@@ -59,6 +59,7 @@ uses scanner, symboltable, riscgenerator, risc;
 
       AndSym:       begin write(' and ') end;
       OrSym:        begin write(' or ') end;
+      NotSym:       begin write(' not ') end;
 
       otherwise     begin write('{ Writing symbol, ', sym, ' }'); end;
     end;
