@@ -1,4 +1,4 @@
-program risccompiler(input, output);
+program prettyprint(input, output);
 
 uses scanner, symboltable, riscgenerator, risc;
 
@@ -690,7 +690,7 @@ uses scanner, symboltable, riscgenerator, risc;
         if sym = EndSym then
         begin
           indent := indent - 1;
-          writeln; windent; writeln('end');
+          writeln; windent; write('end');
           GetSym;
         end
         else Mark('end?');
@@ -740,7 +740,7 @@ uses scanner, symboltable, riscgenerator, risc;
       while sym = ProcedureSym do
       begin
         ProcedureDecl;
-        if sym = SemicolonSym then begin write(';'); GetSym; end else Mark(';?')
+        if sym = SemicolonSym then begin writeln(';'); GetSym; end else Mark(';?')
       end;
 
       Header(varsize);
