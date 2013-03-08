@@ -52,6 +52,10 @@ uses scanner, symboltable, riscgenerator, risc;
 
       PlusSym:      begin write(' + ') end;
       MinusSym:     begin write(' - ') end;
+      EqlSym:       begin write(' = ') end;
+      TimesSym:     begin write(' * ') end;
+      DivSym:       begin write(' div ') end;
+      ModSym:       begin write(' mod ') end;
 
       AndSym:       begin write(' and ') end;
       OrSym:        begin write(' or ') end;
