@@ -21,13 +21,16 @@ while(<STDIN>) {
     }
 }
 
-# This hash trackes what we've already seen.
+# This hash tracks what we've already seen.
 my %seen;
 
 sub check_and_emit {
     # Extract the url.
     my $line = $_[0];
     $line =~ / HREF="([^"\s]+)"/;
+
+    # We run this through the Perl standard library's normalization function
+    # for URIs.  This does "enough" to normalize URIs.
     my $url = URI->new($1)->canonical;
 
     # Check if we've already seen this line.
