@@ -2,6 +2,7 @@
 
 # This makes Perl complain more.  Apparently it's good practice.
 use strict;
+use URI;
 
 # Emit the first 6 lines.
 for(my $i = 0; $i < 6; $i++) {
@@ -27,7 +28,7 @@ sub check_and_emit {
     # Extract the url.
     my $line = $_[0];
     $line =~ / HREF="([^"\s]+)"/;
-    my $url = $1;
+    my $url = URI->new($1)->canonical;
 
     # Check if we've already seen this line.
     return if $seen{$url};
