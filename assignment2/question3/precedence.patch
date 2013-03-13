@@ -1,0 +1,38 @@
+diff --git risccompiler.pas risccompiler.pas
+index 73e1ee4..ad1c19c 100644
+--- risccompiler.pas
++++ risccompiler.pas
+@@ -76,14 +76,7 @@ uses scanner, symboltable, riscgenerator, risc;
+         op := sym; GetSym;
+ 
+         if op = AndSym then Op1 (op, x);
+-        if op = ExpSym then
+-        begin
+-            expression(y);
+-        end
+-        else
+-            factor(y);
+-
+-        Op2 (op, x, y)
++        factor (y); Op2 (op, x, y)
+       end
+   end;
+ 
+@@ -94,14 +87,11 @@ uses scanner, symboltable, riscgenerator, risc;
+     else if sym = MinusSym then
+       begin GetSym; term (x); Op1 (MinusSym, x) end
+     else term (x);
+-
+     while sym in MoreSimpleExp do
+-      begin
+-        op := sym; GetSym;
++      begin op := sym; GetSym;
+         if op = OrSym then Op1 (op, x);
+-        term (y);
+-        Op2 (op, x, y)
+-    end;
++        term (y); Op2 (op, x, y)
++      end
+   end;
+ 
+   procedure expression (var x: Item);

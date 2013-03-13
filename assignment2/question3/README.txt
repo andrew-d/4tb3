@@ -1,0 +1,2 @@
+Note: I can't seem to get both precedence (i.e. making the exponent have higher precedence than other operators) and associativity (i.e. getting multiple exponents to bind correctly) working at the same time.  The source code currently will fail the precedence check, but will pass the associativity check.  If you apply the patch in 'precedence.patch', it will fail the associativity check, but pass the precedence check.  After literally 6 hours, I can't get both working at the same time.
+
