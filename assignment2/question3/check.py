@@ -27,11 +27,13 @@ def run_test(test_file):
     # De-duplicate.
     try:
         out = subprocess.check_output([COMPILER, test_file], stdin=finput)
+
+        # Remove first 4 lines from output.
+        out = ''.join(out.split('\n')[4:]).strip()
+    except subprocess.CalledProcessError as e:
+        out = "** error code %d **" % (e.returncode,)
     finally:
         finput.close()
-
-    # Remove first 4 lines from output.
-    out = ''.join(out.split('\n')[4:]).strip()
 
     if out != expected:
         print('[FAIL] %s (%r != %r)' % (name, out, expected), file=sys.stderr)
