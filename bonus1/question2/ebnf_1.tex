@@ -1,0 +1,76 @@
+\documentclass{article}
+\usepackage{fancybox, url}
+\include{syntax}
+
+\begin{document}
+\title{EBNF Syntax Diagrams}
+\author{Shucai Yao \and Emil Sekerinski}
+\date{January 2013}
+\maketitle
+
+\noindent Example from Chapter 2, EBNF, using \url{http://www.ctan.org/pkg/syntax2}; due to restrictions of the package some parts are different from the scheme of the course notes, although equivalent.
+\begin{enumerate}
+\item{expression ::= ['$+$' $\mid$ '$-$'] term \{('$+$' $\mid$ '$-$' ) term\}}
+
+\begin{Syntaxdiagramm}%
+{\begin{Alternativen}%
+	{\TerSym{$+$}}%
+	{\TerSym{$-$}}%
+	{\Leer}\\%
+	\end{Alternativen}%
+}%
+\Leer%
+\Wiederholung{%
+	\Wiederholung%
+	  {\SynVar{term}}%
+	  {\TerSym{$+$}}}%
+	  {\TerSym{$-$}}%
+\end{Syntaxdiagramm}%
+
+\item{term ::= factor \{('$*$' $\mid$ '$/$' ) factor\}}
+
+\begin{Syntaxdiagramm}%
+\Wiederholung{%
+	\Wiederholung%
+	  {\SynVar{factor}}%
+	  {\TerSym{$*$}}}%
+	  {\TerSym{$/$}}%
+\end{Syntaxdiagramm}%
+
+\item{factor ::= number $\mid$ identifier  $\mid$ '('expression')'}
+
+\begin{Syntaxdiagramm}%
+  \begin{Alternativen}
+	 {\SynVar{number}}%
+	 {\TerSym{(}%
+	  \SynVarR{expression}%
+	  \TerSymR{)}%
+	 }%
+	 \SynVarR{identifier}\\%
+  \end{Alternativen}
+\end{Syntaxdiagramm}
+
+\begin{Syntaxdiagramm}%
+{\begin{Alternative}
+	{
+	\TerSym{(}%
+	\SynVarR{expression}%
+	\TerSymR{)}%
+	}
+	{\begin{Alternative}
+	{\SynVar{number}}%
+	{\SynVar{identifier}}%
+	\end{Alternative}
+	}
+	\end{Alternative}}%	
+\end{Syntaxdiagramm}
+\end{enumerate}
+\end{document}
+
+
+
+
+
+
+
+

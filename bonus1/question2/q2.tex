@@ -1,0 +1,36 @@
+\documentclass{article}
+\usepackage[rounded]{syntax}
+\usepackage{url}
+
+\title{Comp Sci 4TB3 - Bonus 1 - Question 2}
+\author{Andrew Dunham}
+\date{February 2013}
+
+\begin{document}
+\maketitle
+
+\noindent C grammar syntax diagrams, using the BNF from: \url{http://www.cs.man.ac.uk/~pjj/bnf/c_syntax.bnf}
+
+
+\begin{syntdiag}
+\begin{stack}
+\\'$+$'\\'$-$'
+\end{stack}
+\begin{rep} <term>\\ 
+\begin{stack}'$+$'\\'$-$'
+\end{stack}
+\end{rep}
+\end{syntdiag}
+
+\begin{syntdiag}
+\begin{rep} <factor>\\ \begin{stack}'$*$'\\'$/$'\end{stack}\end{rep}
+\end{syntdiag}
+
+\begin{syntdiag}
+\begin{stack} "number"\\<identifier>\\'(' <expression>')'\end{stack}
+\end{syntdiag}
+
+
+
+\end{document}
+
