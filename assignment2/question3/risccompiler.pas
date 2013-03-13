@@ -74,8 +74,16 @@ uses scanner, symboltable, riscgenerator, risc;
     while sym in MoreTerm do
       begin
         op := sym; GetSym;
+
         if op = AndSym then Op1 (op, x);
-        factor (y); Op2 (op, x, y)
+        if op = ExpSym then
+        begin
+            expression(y);
+        end
+        else
+            factor(y);
+
+        Op2 (op, x, y)
       end
   end;
 
@@ -86,11 +94,14 @@ uses scanner, symboltable, riscgenerator, risc;
     else if sym = MinusSym then
       begin GetSym; term (x); Op1 (MinusSym, x) end
     else term (x);
+
     while sym in MoreSimpleExp do
-      begin op := sym; GetSym;
+      begin
+        op := sym; GetSym;
         if op = OrSym then Op1 (op, x);
-        term (y); Op2 (op, x, y)
-      end
+        term (y);
+        Op2 (op, x, y)
+    end;
   end;
 
   procedure expression (var x: Item);

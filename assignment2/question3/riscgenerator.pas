@@ -321,6 +321,7 @@ implementation
 
           { Put the inputs from x and y into registers 1 and 2 }
           if x.mode <> RegClass then loadItem(x);
+
           Put(ADDOP, 1, x.r, 0);
 
           if y.mode = ConstClass then
