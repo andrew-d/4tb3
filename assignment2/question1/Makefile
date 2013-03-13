@@ -9,8 +9,8 @@ risccompiler: risccompiler.pas
 clean:
 	rm *.ppu *.o
 
-test: prettyprint risccompiler
-	python test.py
+check: prettyprint risccompiler
+	python check.py
 
 
 all: prettyprint risccompiler
