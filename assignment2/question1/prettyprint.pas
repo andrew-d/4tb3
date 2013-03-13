@@ -1,6 +1,6 @@
 program prettyprint(input, output);
 
-uses scanner, symboltable, riscgenerator, risc;
+uses scanner2, symboltable2, riscgenerator2, risc2;
 
   const
     WordSize = 4;

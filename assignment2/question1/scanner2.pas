@@ -1,4 +1,4 @@
-unit scanner;
+unit scanner2;
 interface
 
   const
@@ -21,7 +21,7 @@ interface
     error: Boolean; {whether an error has occurred so far}
 
   procedure Mark (msg: string);
-  
+
   procedure GetSym;
 
 implementation
@@ -29,7 +29,7 @@ implementation
   const
     KW = 20; {number of keywords}
   type
-    KeyTable = array [1..KW] of 
+    KeyTable = array [1..KW] of
       record sym: Symbol; id: Identifier end;
   var
     ch: char;
@@ -41,11 +41,11 @@ implementation
   procedure GetChar;
   begin
     lastpos := pos;
-    if eoln (source) then begin pos := 0; line := line + 1 end
+    if eoln then begin pos := 0; line := line + 1 end
     else begin lastline:= line; pos := pos + 1 end;
-    read (source, ch)
+    read (ch)
   end;
-  
+
   procedure Number;
   begin val := 0; sym := NumberSym;
     repeat
@@ -56,7 +56,7 @@ implementation
       GetChar
     until not (ch in ['0'..'9'])
   end;
-  
+
   procedure Ident;
     var len, k: integer;
   begin len := 0;
@@ -68,11 +68,11 @@ implementation
     while (k <= KW) and (id <> keyTab[k].id) do k := k + 1;
     if k <= KW then sym := keyTab[k].sym else sym := IdentSym
   end;
-  
+
   procedure comment;
   begin GetChar;
-    while (not eof (source)) and (ch <> '}') do GetChar;
-    if eof (source) then Mark ('comment not terminated')
+    while (not eof) and (ch <> '}') do GetChar;
+    if eof then Mark ('comment not terminated')
     else GetChar;
   end;
   procedure Mark (msg: string);
@@ -83,9 +83,9 @@ implementation
   end;
   procedure GetSym;
   begin {first skip white space}
-    while not eof (source) and (ch <= ' ') do GetChar;
-    if eof (source) then sym := EofSym
-    else 
+    while not eof and (ch <= ' ') do GetChar;
+    if eof then sym := EofSym
+    else
       case ch of
         '*': begin GetChar; sym := TimesSym end;
         '+': begin GetChar; sym := PlusSym end;
@@ -93,9 +93,9 @@ implementation
         '=': begin GetChar; sym := EqlSym end;
         '<': begin GetChar;
                if ch = '=' then
-                 begin GetChar; sym := LeqSym end 
+                 begin GetChar; sym := LeqSym end
                else if ch = '>' then
-                 begin GetChar; sym := NeqSym end 
+                 begin GetChar; sym := NeqSym end
                else sym := LssSym
              end;
         '>': begin GetChar;
@@ -146,9 +146,4 @@ begin
   keyTab[18].sym := ProcedureSym; keyTab[18].id := 'procedure';
   keyTab[19].sym := DivSym; keyTab[19].id := 'div';
   keyTab[20].sym := ProgramSym; keyTab[20].id := 'program';
-  if paramcount > 0 then
-    begin fn := paramstr (1); assign (source, fn); reset (source);
-      GetChar
-    end
-  else Mark ('name of source file expected')
 end.

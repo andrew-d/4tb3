@@ -41,15 +41,19 @@ def run_test(input_file):
     _, name = os.path.split(input_file)
     new_file = tempfile.NamedTemporaryFile()
 
+    ifile = open(input_file)
+
     # Prettyprint the file.
     try:
-        subprocess.check_call([bin_path, input_file],
+        subprocess.check_call([bin_path],
+                              stdin=ifile,
                               stdout=new_file,
                               stderr=subprocess.PIPE)
 
         try_compile(name, new_file.name)
     finally:
         new_file.close()
+        ifile.close()
 
 
 
