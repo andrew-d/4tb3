@@ -269,13 +269,13 @@ implementation
             if ((x.mode = ConstClass) and (x.a = 0)) then
             begin
                 { ignore - we swap the values here, too, so things don't break }
-                writeln(pc * 4, ': ', 'Ignoring addition of 0 (backwards)');
+                writeln('   ', pc * 4, ': ', 'ignoring addition of 0 (backwards)');
                 x := y;
             end
             else if ((y.mode = ConstClass) and (y.a = 0)) then
             begin
                 { ignore }
-                writeln(pc * 4, ': ', 'Ignoring addition of 0');
+                writeln('   ', pc * 4, ': ', 'ignoring addition of 0');
             end
             else
             begin
@@ -290,7 +290,7 @@ implementation
             if ((y.mode = ConstClass) and (y.a = 0)) then
             begin
                 { ignore }
-                writeln(pc * 4, ': ', 'Ignoring subtraction of 0');
+                writeln('   ', pc * 4, ': ', 'ignoring subtraction of 0');
             end
             else
                 PutOp (SUBOP, x, y);
@@ -302,13 +302,13 @@ implementation
             if ((x.mode = ConstClass) and (x.a = 1)) then
             begin
                 { ignore - we swap the values here, too, so things don't break }
-                writeln(pc * 4, ': ', 'Ignoring multiplication by 1 (backwards)');
+                writeln('   ', pc * 4, ': ', 'ignoring multiplication by 1 (backwards)');
                 x := y;
             end
             else if ((y.mode = ConstClass) and (y.a = 1)) then
             begin
                 { ignore }
-                writeln(pc * 4, ': ', 'Ignoring multiplication by 1');
+                writeln('   ', pc * 4, ': ', 'ignoring multiplication by 1');
             end
             else
                 PutOp (MULOP, x, y);
@@ -319,7 +319,7 @@ implementation
             if ((y.mode = ConstClass) and (y.a = 1)) then
             begin
                 { ignore }
-                writeln(pc * 4, ': ', 'Ignoring division by 1');
+                writeln('   ', pc * 4, ': ', 'ignoring division by 1');
             end
             else
                 PutOp (DIVOP, x, y);
