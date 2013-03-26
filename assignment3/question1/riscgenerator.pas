@@ -260,11 +260,68 @@ implementation
         else if op = ModSym then x.a := x.a mod y.a
         else Mark ('bad type')
       else
-        if op = PlusSym then PutOp (ADDOP, x, y)
-        else if op = MinusSym then PutOp (SUBOP, x, y)
-        else if op = TimesSym then PutOp (MULOP, x, y)
-        else if op = DivSym then PutOp (DIVOP, x, y)
-        else if op = ModSym then PutOp (MODOP, x, y)
+        if op = PlusSym then
+        begin
+            { ignore cases where one of the two operands is a constant
+              and the value is 0 }
+            if ((x.mode = ConstClass) and (x.a = 0)) then
+            begin
+                { ignore - this isn't currently working }
+                writeln(pc * 4, ': ', 'Ignoring addition of 0 (backwards)');
+                x := y;
+            end
+            else if ((y.mode = ConstClass) and (y.a = 0)) then
+            begin
+                { ignore }
+                writeln(pc * 4, ': ', 'Ignoring addition of 0');
+            end
+            else
+                PutOp (ADDOP, x, y);
+        end
+        else if op = MinusSym then
+        begin
+            { ignore cases where the second operand is 0 }
+            if ((y.mode = ConstClass) and (y.a = 0)) then
+            begin
+                { ignore }
+                writeln(pc * 4, ': ', 'Ignoring subtraction of 0');
+            end
+            else
+                PutOp (SUBOP, x, y);
+        end
+        else if op = TimesSym then
+        begin
+            { ignore cases where one of the two operands is a constant
+              and the value is 1 }
+            if ((x.mode = ConstClass) and (x.a = 1)) then
+            begin
+                { ignore - this isn't currently working }
+                writeln(pc * 4, ': ', 'Ignoring multiplication by 1 (backwards)');
+                x := y;
+            end
+            else if ((y.mode = ConstClass) and (y.a = 1)) then
+            begin
+                { ignore }
+                writeln(pc * 4, ': ', 'Ignoring multiplication by 1');
+            end
+            else
+                PutOp (MULOP, x, y);
+        end
+        else if op = DivSym then
+        begin
+            { ignore cases where the second operand is 1 }
+            if ((y.mode = ConstClass) and (y.a = 1)) then
+            begin
+                { ignore }
+                writeln(pc * 4, ': ', 'Ignoring division by 1');
+            end
+            else
+                PutOp (DIVOP, x, y);
+        end
+        else if op = ModSym then
+        begin
+            PutOp (MODOP, x, y)
+        end
         else Mark ('bad type')
     else if (x.tp^.form = Bool) and (y.tp^.form = Bool) then
       begin
