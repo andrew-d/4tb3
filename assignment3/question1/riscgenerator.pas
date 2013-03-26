@@ -264,25 +264,16 @@ implementation
       else
         if op = PlusSym then
         begin
-            { ignore cases where one of the two operands is a constant
-              and the value is 0 }
-            if ((x.mode = ConstClass) and (x.a = 0)) then
-            begin
-                { ignore - we swap the values here, too, so things don't break }
-                writeln('   ', pc * 4, ': ', 'ignoring addition of 0 (backwards)');
-                x := y;
-            end
-            else if ((y.mode = ConstClass) and (y.a = 0)) then
+            { ignore the case where the addition is 0.
+              NOTE: we'll never have the reverse, since all number + var are
+              swapped before getting here. }
+            if ((y.mode = ConstClass) and (y.a = 0)) then
             begin
                 { ignore }
                 writeln('   ', pc * 4, ': ', 'ignoring addition of 0');
             end
             else
-            begin
-                { TODO: simple optimization - swap the operands of addition or multiplication if
-                  one of the operands is a constant }
                 PutOp (ADDOP, x, y);
-            end
         end
         else if op = MinusSym then
         begin
@@ -297,15 +288,10 @@ implementation
         end
         else if op = TimesSym then
         begin
-            { ignore cases where one of the two operands is a constant
-              and the value is 1 }
-            if ((x.mode = ConstClass) and (x.a = 1)) then
-            begin
-                { ignore - we swap the values here, too, so things don't break }
-                writeln('   ', pc * 4, ': ', 'ignoring multiplication by 1 (backwards)');
-                x := y;
-            end
-            else if ((y.mode = ConstClass) and (y.a = 1)) then
+            { ignore the case where the multiplicand is 1.
+              NOTE: we'll never have the reverse, since all number + var are
+              swapped before getting here. }
+            if ((y.mode = ConstClass) and (y.a = 1)) then
             begin
                 { ignore }
                 writeln('   ', pc * 4, ': ', 'ignoring multiplication by 1');
