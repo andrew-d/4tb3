@@ -212,7 +212,9 @@ implementation
         Put (CHKIOP, y.r, 0, x.tp^.len);
         Put (MULIOP, y.r, y.r, x.tp^.base^.size);
         if x.r <> 0 then
-          begin Put (ADDOP, y.r, x.r, y.r); regs := regs - [x.r] end;
+        begin
+            Put (ADDOP, y.r, x.r, y.r); regs := regs - [x.r]
+        end;
         x.r := y.r
       end;
     x.tp := x.tp^.base
@@ -266,7 +268,7 @@ implementation
               and the value is 0 }
             if ((x.mode = ConstClass) and (x.a = 0)) then
             begin
-                { ignore - this isn't currently working }
+                { ignore - we swap the values here, too, so things don't break }
                 writeln(pc * 4, ': ', 'Ignoring addition of 0 (backwards)');
                 x := y;
             end
@@ -276,7 +278,11 @@ implementation
                 writeln(pc * 4, ': ', 'Ignoring addition of 0');
             end
             else
+            begin
+                { TODO: simple optimization - swap the operands of addition or multiplication if
+                  one of the operands is a constant }
                 PutOp (ADDOP, x, y);
+            end
         end
         else if op = MinusSym then
         begin
@@ -295,7 +301,7 @@ implementation
               and the value is 1 }
             if ((x.mode = ConstClass) and (x.a = 1)) then
             begin
-                { ignore - this isn't currently working }
+                { ignore - we swap the values here, too, so things don't break }
                 writeln(pc * 4, ': ', 'Ignoring multiplication by 1 (backwards)');
                 x := y;
             end

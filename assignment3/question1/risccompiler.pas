@@ -70,17 +70,27 @@ uses scanner, symboltable, riscgenerator, risc;
   
   procedure term (var x: Item);
     var y: Item; op: Symbol;
+    var tmp: Item;
   begin factor (x);
     while sym in MoreTerm do
       begin
         op := sym; GetSym;
         if op = AndSym then Op1 (op, x);
-        factor (y); Op2 (op, x, y)
+        factor (y);
+        if (op = TimesSym) and ((x.mode = ConstClass) and (y.mode <> ConstClass)) then
+        begin
+            writeln('   ', pc * 4, ': swappable multiplication detected');
+            tmp := x;
+            x := y;
+            y := tmp;
+        end;
+        Op2 (op, x, y)
       end
   end;
   
   procedure SimpleExpression (var x: Item);
     var y: Item; op: Symbol;
+    var tmp: Item;
   begin
     if sym = PlusSym then begin GetSym; term (x) end
     else if sym = MinusSym then
@@ -89,7 +99,15 @@ uses scanner, symboltable, riscgenerator, risc;
     while sym in MoreSimpleExp do
       begin op := sym; GetSym;
         if op = OrSym then Op1 (op, x);
-        term (y); Op2 (op, x, y)
+        term (y);
+        if (op = PlusSym) and ((x.mode = ConstClass) and (y.mode <> ConstClass)) then
+        begin
+            writeln('   ', pc * 4, ': swappable addition detected');
+            tmp := x;
+            x := y;
+            y := tmp;
+        end;
+        Op2 (op, x, y)
       end
   end;
   
