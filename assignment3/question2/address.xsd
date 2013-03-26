@@ -1,0 +1,45 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:simpleType name="PostalCode">
+    <xsd:restriction base="xsd:string">
+      <xsd:length value="7"/>
+      <!-- <xsd:pattern value="[A-Z]\d[A-Z] \d[A-Z]\d"/> -->
+      <xsd:pattern value="[A-Z]\d[A-Z] [A-Z]\d[A-Z]"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="OS">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="Mac"/>
+      <xsd:enumeration value="PC"/>
+      <xsd:enumeration value="Linux"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:element name="contacts">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element maxOccurs="unbounded" ref="pal"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:element name="pal">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="name" type="xsd:string"/>
+        <xsd:element name="nickname" type="xsd:string" minOccurs="0"/>
+        <xsd:element name="birthday" type="xsd:date" minOccurs="0"/>
+        <xsd:element name="os" type="OS"/>
+        <xsd:element name="address" type="xsd:string"/>
+        <xsd:element name="postal_code" type="PostalCode"/>
+        <xsd:choice minOccurs="1" maxOccurs="1">
+          <xsd:sequence>
+            <xsd:element name="phone" type="xsd:string"/>
+            <xsd:element name="e-mail" type="xsd:string" minOccurs="0"/>
+          </xsd:sequence>
+          <xsd:element name="e-mail" type="xsd:string"/>
+        </xsd:choice>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>

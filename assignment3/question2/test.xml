@@ -1,0 +1,19 @@
+<contacts>
+  <pal>
+    <name>Bogart, Humphrey</name>
+    <nickname> Bogie </nickname>
+    <birthday>1899-12-25</birthday>
+    <os>Linux</os>
+    <address>1280 Market Place, Casablanca</address>
+    <postal_code>X0X X0X</postal_code>
+    <phone>(905) 525 9140</phone>
+  </pal>
+  <pal>
+    <name>Monroe, Marilyn</name>
+    <os>Mac</os>
+    <address>1280 Sunset Drive, Hollywood</address>
+    <postal_code>X0X X0X</postal_code>
+    <phone>(323) 525 9140</phone>
+    <e-mail>some@like.it.hot</e-mail>
+  </pal>
+</contacts>
