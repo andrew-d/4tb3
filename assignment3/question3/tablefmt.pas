@@ -75,6 +75,9 @@ begin
 
     { Set the current pointer to this one }
     curr_table := n;
+
+    { Zero out the current row so it gets created in NewRowEntry }
+    curr_row := nil;
 end;
 
 { Get a new character from the input stream }
@@ -149,13 +152,10 @@ end;
 { Parse a single table data entry }
 procedure TableData;
 var
-    s: string;
+    s, tmp: string;
     start, ending, len: integer;
 
 begin
-    EatWhitespace;
-    ReadTag;
-
     if curr_tag <> TdStart then Abort('Expected <TD> tag');
 
     { Read until a "<" }
@@ -167,14 +167,18 @@ begin
         len := len + 1;
         GetChar;
     end;
-    DPrint('  raw string: "' + s + '"');
+    Str(len, tmp);
+    DPrint('  raw string: "' + s + '", len = ' + tmp);
 
     { Remove beginning / trailing whitespace }
-    start := 0;
-    ending := len - 1;
+    start := 1;
+    ending := len;
 
     while (s[start] in WHITESPACE) and (start < len) do
+    begin
+        DPrint('Character "' + s[start] + '" is in whitespace, trimming from front...');
         start := start + 1;
+    end;
 
     while (s[ending] in WHITESPACE) and (ending > 0) do
         ending := ending - 1;
@@ -199,9 +203,8 @@ end;
 { Parse a single table row }
 procedure TableRow;
 begin
-    EatWhitespace;
-    ReadTag;
     if curr_tag <> TrStart then Abort('Expected <TR> tag');
+    EatWhitespace; ReadTag;
 
     DPrint('starting td loop...');
     NewRow;
@@ -217,9 +220,12 @@ end;
 { Start parsing by reading a "<TABLE>" from the stream and parsing rows }
 procedure Table;
 begin
-    EatWhitespace;
-    ReadTag;
+    DPrint('starting parsing table');
+    EatWhitespace; ReadTag;
     if curr_tag <> TableStart then Abort('Expected <TABLE> tag at start');
+
+    DPrint('starting parsing table row...');
+    EatWhitespace; ReadTag;
 
     DPrint('starting table row loop...');
 
@@ -228,6 +234,9 @@ begin
         TableRow;
         ReadTag;
     end;
+
+    DPrint('done processing input!');
+    DPrint('');
 end;
 
 { Write the output }
