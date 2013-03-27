@@ -169,12 +169,15 @@ begin
 
     while (s[start] <= ' ') and (start < len) do
     begin
-        DPrint('Character "' + s[start] + '" is in whitespace, trimming from front...');
+        DPrint('  character "' + s[start] + '" is in whitespace, trimming from front...');
         start := start + 1;
     end;
 
     while (s[ending] <= ' ') and (ending > 0) do
+    begin
+        DPrint('  character "' + s[ending] + '" is in whitespace, trimming from end...');
         ending := ending - 1;
+    end;
 
     { Set new length }
     len := ending - start + 1;
