@@ -112,14 +112,6 @@ begin
     else Abort('Expected "' + c + '", not "' + look + '"');
 end;
 
-{ Match a specific input string }
-procedure MatchString(s: string);
-var
-    c: char;
-begin
-    for c in s do Match(c);
-end;
-
 { Read a single tag from the input stream }
 procedure ReadTag;
 var

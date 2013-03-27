@@ -43,3 +43,5 @@
     </xsd:complexType>
   </xsd:element>
 </xsd:schema>
+
+<!-- test with: http://www.utilities-online.info/xsdvalidation/ -->
