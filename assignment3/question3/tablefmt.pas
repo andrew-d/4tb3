@@ -6,11 +6,23 @@ const
 
 type
     Tag = (TableStart, TableClose, TrStart, TrClose, TdStart, TdClose);
+    RowEntry = record
+                 s: string;
+                 next: ^RowEntry;
+               end;
+    TableEntry = record
+                   row: ^RowEntry;
+                   next: ^TableEntry;
+                 end;
 
 var
-    look: char;             { current character}
-    curr_tag: Tag;          { current tag }
-    longest : integer;      { longest string }
+    look: char;                 { current character}
+    curr_tag: Tag;              { current tag }
+    longest : integer;          { longest string }
+
+    table_head: ^TableEntry;    { head of tree }
+    curr_table: ^TableEntry;    { current table entry }
+    curr_row: ^RowEntry;        { current row }
 
 
 { Debug printing }
@@ -20,6 +32,50 @@ begin
         writeln(s);
 end;
 
+{ Add a new string to the current row }
+procedure NewRowEntry(s: string);
+var
+    tmp, n: ^RowEntry;
+begin
+    { Create new entry }
+    New(n);
+    n^.s := s;
+    n^.next := nil;
+
+    { If the current row entry is nil, we add it and set it }
+    if curr_row = nil then
+    begin
+        curr_table^.row := n;
+        curr_row := n;
+    end
+    else
+    begin
+        { Find the end of the current row entry }
+        tmp := curr_row;
+        while tmp^.next <> nil do
+            tmp := tmp^.next;
+
+        { Put the next entry in }
+        tmp^.next := n;
+    end;
+end;
+
+{ Add a new row }
+procedure NewRow;
+var
+    n: ^TableEntry;
+begin
+    { Create the new entry. }
+    New(n);
+    n^.row := nil;
+    n^.next := nil;
+
+    { Append to the current table entry }
+    curr_table^.next := n;
+
+    { Set the current pointer to this one }
+    curr_table := n;
+end;
 
 { Get a new character from the input stream }
 procedure GetChar;
@@ -133,6 +189,9 @@ begin
     { Set longest count }
     if len > longest then longest := len;
 
+    { Save this string }
+    NewRowEntry(s);
+
     ReadTag;
     if curr_tag <> TdClose then Abort('Expected </TD> tag');
 end;
@@ -145,9 +204,11 @@ begin
     if curr_tag <> TrStart then Abort('Expected <TR> tag');
 
     DPrint('starting td loop...');
+    NewRow;
 
     while curr_tag <> TrClose do
     begin
+        writeln(' handling td...');
         TableData;
         ReadTag;
     end;
@@ -173,15 +234,59 @@ end;
 procedure PrintOutput;
 var
     tmp: string;
+    row_ptr: ^TableEntry;
+    entry_ptr: ^RowEntry;
+    i: integer;
 begin
     Str(longest, tmp);
     DPrint('longest string is: ' + tmp);
+
+    { Traverse the parse tree to output each row }
+    row_ptr := table_head^.next;
+    while row_ptr <> nil do
+    begin
+        { Output beginning }
+        write('| ');
+
+        { Traverse each row }
+        entry_ptr := row_ptr^.row;
+        while entry_ptr <> nil do
+        begin
+            { Output this entry }
+            write(entry_ptr^.s);
+
+            { Output padding }
+            for i := Length(entry_ptr^.s) to longest do
+                write(' ');
+
+            { Output separator }
+            write('| ');
+
+            { Next entry }
+            entry_ptr := entry_ptr^.next;
+        end;
+
+        { Output final newline }
+        writeln;
+
+        { Next row }
+        row_ptr := row_ptr^.next;
+    end;
 end;
 
 { Initialize }
 procedure Init;
 begin
+    { Initialize variables }
     longest := 0;
+
+    { Set up parse tree }
+    New(table_head);
+    table_head^.row := nil;
+    table_head^.next := nil;
+    curr_table := table_head;
+
+    { Finally, get the first character }
     GetChar;
 end;
 
