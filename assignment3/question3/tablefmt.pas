@@ -136,13 +136,15 @@ begin
 
     GetChar;
 
+    { Lower-case the string so we can handle mixed-case tags }
+    s := LowerCase(s);
     case s of
-      'TABLE': begin curr_tag := TableStart end;
-      '/TABLE': begin curr_tag := TableClose end;
-      'TR': begin curr_tag := TrStart end;
-      '/TR': begin curr_tag := TrClose end;
-      'TD': begin curr_tag := TdStart end;
-      '/TD': begin curr_tag := TdClose end;
+      'table': begin curr_tag := TableStart end;
+      '/table': begin curr_tag := TableClose end;
+      'tr': begin curr_tag := TrStart end;
+      '/tr': begin curr_tag := TrClose end;
+      'td': begin curr_tag := TdStart end;
+      '/td': begin curr_tag := TdClose end;
     otherwise
       begin Abort('Unknown tag: ' + s) end
     end;
