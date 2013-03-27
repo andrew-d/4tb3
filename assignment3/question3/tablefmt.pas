@@ -2,7 +2,6 @@ program tablefmt;
 
 const
     DEBUG = true;
-    WHITESPACE = [' ', '	', ''];
 
 type
     Tag = (TableStart, TableClose, TrStart, TrClose, TdStart, TdClose);
@@ -89,7 +88,7 @@ end;
 { Eat everything in the input stream until a non-whitespace character }
 procedure EatWhitespace;
 begin
-    while look in WHITESPACE do GetChar;
+    while look <= ' ' do GetChar;
 end;
 
 { Report an error }
@@ -174,13 +173,13 @@ begin
     start := 1;
     ending := len;
 
-    while (s[start] in WHITESPACE) and (start < len) do
+    while (s[start] <= ' ') and (start < len) do
     begin
         DPrint('Character "' + s[start] + '" is in whitespace, trimming from front...');
         start := start + 1;
     end;
 
-    while (s[ending] in WHITESPACE) and (ending > 0) do
+    while (s[ending] <= ' ') and (ending > 0) do
         ending := ending - 1;
 
     { Set new length }
@@ -198,6 +197,7 @@ begin
 
     ReadTag;
     if curr_tag <> TdClose then Abort('Expected </TD> tag');
+    DPrint('  done handling td');
 end;
 
 { Parse a single table row }
@@ -211,9 +211,9 @@ begin
 
     while curr_tag <> TrClose do
     begin
-        writeln(' handling td...');
+        DPrint(' handling td...');
         TableData;
-        ReadTag;
+        EatWhitespace; ReadTag;
     end;
 end;
 
@@ -232,7 +232,7 @@ begin
     while curr_tag <> TableClose do
     begin
         TableRow;
-        ReadTag;
+        EatWhitespace; ReadTag;
     end;
 
     DPrint('done processing input!');
