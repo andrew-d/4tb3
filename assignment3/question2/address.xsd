@@ -2,8 +2,7 @@
   <xsd:simpleType name="PostalCode">
     <xsd:restriction base="xsd:string">
       <xsd:length value="7"/>
-      <!-- <xsd:pattern value="[A-Z]\d[A-Z] \d[A-Z]\d"/> -->
-      <xsd:pattern value="[A-Z]\d[A-Z] [A-Z]\d[A-Z]"/>
+      <xsd:pattern value="[A-Z]\d[A-Z] \d[A-Z]\d"/>
     </xsd:restriction>
   </xsd:simpleType>
 
@@ -31,7 +30,7 @@
         <xsd:element name="birthday" type="xsd:date" minOccurs="0"/>
         <xsd:element name="os" type="OS"/>
         <xsd:element name="address" type="xsd:string"/>
-        <xsd:element name="postal_code" type="PostalCode"/>
+        <xsd:element name="postal_code" type="PostalCode" minOccurs="0"/>
         <xsd:choice minOccurs="1" maxOccurs="1">
           <xsd:sequence>
             <xsd:element name="phone" type="xsd:string"/>
