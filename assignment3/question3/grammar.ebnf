@@ -1,0 +1,9 @@
+Table(len_t) = "<TABLE></TABLE>"                                len_t := 0
+             | "<TABLE>" MultiRows(len_z) "</TABLE>"            len_t := len_z
+MultiRows(len_z0) = Row(len_y)                                  len_z0 := len_y
+                 | MultiRows(len_z1) Row(len_y)                 len_z0 := max(len_z1, len_y)
+Row(len_y) = "<TR></TR>"                                        len_y := 0
+           | "<TR>" MultiElem(len_x) "</TR>"                    len_y := len_x
+MultiElem(len_x0) = Elem(len_e)                                 len_x0 := len_e
+                  | MultiElem(len_x1) Elem(len_e)               len_x0 := max(len_x1, len_e)
+Elem(len_e) = "<TD>" string "</TD>"                             len_e := len(string)
