@@ -1,4 +1,4 @@
-program risccompiler (input, output);
+program risccompiler_test (input, output);
 
 uses scanner, symboltable, riscgenerator, risc;
 
@@ -477,5 +477,7 @@ uses scanner, symboltable, riscgenerator, risc;
   end;
 
 begin {Parser}
-  Init; Compile; if not error then Load
+  Init; Compile;
+  if error then Halt(1)
+  else Halt(0);
 end.
