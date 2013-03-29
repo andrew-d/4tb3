@@ -1,27 +1,30 @@
 program tablefmt;
 
 const
-    DEBUG = true;
+    DEBUG = false;
 
 type
     Tag = (TableStart, TableClose, TrStart, TrClose, TdStart, TdClose);
-    RowEntry = record
-                 s: string;
-                 next: ^RowEntry;
-               end;
-    TableEntry = record
-                   row: ^RowEntry;
-                   next: ^TableEntry;
-                 end;
+
+    NodeType = (NodeHead, TableNode, MultiRowsNode, RowNode, MultiElemNode, ElemNode);
+    Node = record
+            ty: NodeType;
+            child: ^Node;
+            child_len: integer;
+
+            { optional }
+            s: string;
+           end;
+    NodePtr = ^Node;
+
 
 var
     look: char;                 { current character}
     curr_tag: Tag;              { current tag }
-    longest : integer;          { longest string }
 
-    table_head: ^TableEntry;    { head of tree }
-    curr_table: ^TableEntry;    { current table entry }
-    curr_row: ^RowEntry;        { current row }
+    head_node: NodePtr;         { head of parse tree }
+    curr_node: NodePtr;         { current node }
+
 
 
 { Debug printing }
@@ -29,54 +32,6 @@ procedure DPrint(s: string);
 begin
     if DEBUG then
         writeln(s);
-end;
-
-{ Add a new string to the current row }
-procedure NewRowEntry(s: string);
-var
-    tmp, n: ^RowEntry;
-begin
-    { Create new entry }
-    New(n);
-    n^.s := s;
-    n^.next := nil;
-
-    { If the current row entry is nil, we add it and set it }
-    if curr_row = nil then
-    begin
-        curr_table^.row := n;
-        curr_row := n;
-    end
-    else
-    begin
-        { Find the end of the current row entry }
-        tmp := curr_row;
-        while tmp^.next <> nil do
-            tmp := tmp^.next;
-
-        { Put the next entry in }
-        tmp^.next := n;
-    end;
-end;
-
-{ Add a new row }
-procedure NewRow;
-var
-    n: ^TableEntry;
-begin
-    { Create the new entry. }
-    New(n);
-    n^.row := nil;
-    n^.next := nil;
-
-    { Append to the current table entry }
-    curr_table^.next := n;
-
-    { Set the current pointer to this one }
-    curr_table := n;
-
-    { Zero out the current row so it gets created in NewRowEntry }
-    curr_row := nil;
 end;
 
 { Get a new character from the input stream }
@@ -89,6 +44,26 @@ end;
 procedure EatWhitespace;
 begin
     while look <= ' ' do GetChar;
+end;
+
+{ Add a new node to the parse tree }
+function NewNode(ty: NodeType) : NodePtr;
+var
+    n: NodePtr;
+begin
+    { Initialize new element }
+    New(n);
+    n^.ty := ty;
+    n^.child := nil;
+    n^.child_len := 0;
+    n^.s := '';
+
+    { Place on parse tree }
+    curr_node^.child := n;
+
+    { Update current }
+    curr_node := n;
+    NewNode := n;
 end;
 
 { Report an error }
@@ -143,7 +118,7 @@ begin
 end;
 
 { Parse a single table data entry }
-procedure TableData;
+function TableData : NodePtr;
 var
     s, tmp: string;
     start, ending, len: integer;
@@ -186,51 +161,104 @@ begin
     s := Copy(s, start, len);
     DPrint('  trimmed string: "' + s + '"');
 
-    { Set longest count }
-    if len > longest then longest := len;
-
-    { Save this string }
-    NewRowEntry(s);
+    { Add a new node to the parse tree }
+    TableData := NewNode(ElemNode);
+    curr_node^.s := s;
+    curr_node^.child_len := Length(s);
 
     ReadTag;
     if curr_tag <> TdClose then Abort('Expected </TD> tag');
     DPrint('  done handling td');
 end;
 
+function MultiElem : NodePtr;
+var
+    max_len: integer;
+    curr: NodePtr;
+
+begin
+    MultiElem := NewNode(MultiElemNode);
+    max_len := 0;
+
+    DPrint('starting td loop...');
+    while curr_tag <> TrClose do
+    begin
+        DPrint(' handling td...');
+        curr := TableData;
+        if curr^.child_len > max_len then max_len := curr^.child_len;
+
+        EatWhitespace; ReadTag;
+    end;
+
+    MultiElem^.child_len := max_len;
+end;
+
 { Parse a single table row }
-procedure TableRow;
+function TableRow : NodePtr;
+var
+    curr: NodePtr;
 begin
     if curr_tag <> TrStart then Abort('Expected <TR> tag');
     EatWhitespace; ReadTag;
 
-    DPrint('starting td loop...');
-    NewRow;
+    { Add a new node to the parse tree }
+    TableRow := NewNode(RowNode);
 
-    while curr_tag <> TrClose do
+    { Parse multiple table elements }
+    curr := MultiElem;
+    TableRow^.child_len := curr^.child_len;
+
+    DPrint('done parsing table row...');
+end;
+
+{ Parse until we reach something that's not a row any more }
+function MultiRows : NodePtr;
+var
+    row_node: NodePtr;
+    max_len: integer;
+
+begin
+    DPrint('starting parsing table rows...');
+    EatWhitespace; ReadTag;
+
+    MultiRows := NewNode(MultiRowsNode);
+    max_len := 0;
+
+    DPrint('starting table row loop...');
+    while curr_tag <> TableClose do
     begin
-        DPrint(' handling td...');
-        TableData;
+        { Parse the current row }
+        row_node := TableRow;
+
+        { Get max length }
+        if max_len < row_node^.child_len then max_len := row_node^.child_len;
+
+        { Read next tag }
         EatWhitespace; ReadTag;
     end;
+
+    { Save the length }
+    MultiRows^.child_len := max_len;
 end;
 
 { Start parsing by reading a "<TABLE>" from the stream and parsing rows }
 procedure Table;
+var
+    curr, this: NodePtr;
+
 begin
     DPrint('starting parsing table');
     EatWhitespace; ReadTag;
     if curr_tag <> TableStart then Abort('Expected <TABLE> tag at start');
 
-    DPrint('starting parsing table row...');
-    EatWhitespace; ReadTag;
+    { New node }
+    this := NewNode(TableNode);
 
-    DPrint('starting table row loop...');
+    { Parse rows }
+    curr := MultiRows;
 
-    while curr_tag <> TableClose do
-    begin
-        TableRow;
-        EatWhitespace; ReadTag;
-    end;
+    { Set length }
+    this^.child_len := curr^.child_len;
 
     DPrint('done processing input!');
     DPrint('');
@@ -239,58 +267,78 @@ end;
 { Write the output }
 procedure PrintOutput;
 var
-    tmp: string;
-    row_ptr: ^TableEntry;
-    entry_ptr: ^RowEntry;
-    i: integer;
+    curr: NodePtr;
+    max_len, row_count, i: integer;
+
 begin
-    Str(longest, tmp);
-    DPrint('longest string is: ' + tmp);
+    { Recursively parse the parse tree }
+    curr := head_node^.child;
+    max_len := curr^.child_len;
+    row_count := 0;
 
-    { Traverse the parse tree to output each row }
-    row_ptr := table_head^.next;
-    while row_ptr <> nil do
+    repeat
     begin
-        { Output beginning }
-        write('| ');
-
-        { Traverse each row }
-        entry_ptr := row_ptr^.row;
-        while entry_ptr <> nil do
+        { If this is an element... }
+        if curr^.ty = ElemNode then
         begin
-            { Output this entry }
-            write(entry_ptr^.s);
+            write('| ', curr^.s);
 
-            { Output padding }
-            for i := Length(entry_ptr^.s) to longest do
+            for i := Length(curr^.s) to max_len do
                 write(' ');
-
-            { Output separator }
-            write('| ');
-
-            { Next entry }
-            entry_ptr := entry_ptr^.next;
+        end
+        else if curr^.ty = RowNode then
+        begin
+            if row_count > 0 then write('|');
+            row_count := row_count + 1;
+            writeln;
         end;
 
-        { Output final newline }
-        writeln;
+        { Next element }
+        curr := curr^.child;
+    end
+    until curr = nil;
 
-        { Next row }
-        row_ptr := row_ptr^.next;
-    end;
+    writeln('|');
+end;
+
+{ Debug helper - prints parse tree }
+procedure WriteTree;
+var
+    curr: NodePtr;
+
+begin
+    { Recursively parse the parse tree }
+    curr := head_node^.child;
+
+    writeln('Maximum length is ', head_node^.child_len);
+
+    repeat
+    begin
+        case curr^.ty of
+            TableNode: begin
+                writeln('TableNode');
+            end;
+            RowNode: begin writeln(' RowNode (', curr^.child_len, ')') end;
+            ElemNode: begin
+                writeln('  ElemNode (', curr^.child_len, ') = "', curr^.s, '"');
+            end;
+        end;
+
+        curr := curr^.child;
+    end
+    until curr = nil;
 end;
 
 { Initialize }
 procedure Init;
 begin
-    { Initialize variables }
-    longest := 0;
-
     { Set up parse tree }
-    New(table_head);
-    table_head^.row := nil;
-    table_head^.next := nil;
-    curr_table := table_head;
+    New(head_node);
+    head_node^.ty := NodeHead;
+    head_node^.child := nil;
+    head_node^.child_len := 0;
+
+    curr_node := head_node;
 
     { Finally, get the first character }
     GetChar;
@@ -299,5 +347,6 @@ end;
 begin
     Init;
     Table;
+    if DEBUG then WriteTree;
     PrintOutput;
 end.
