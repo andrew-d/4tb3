@@ -1,0 +1,39 @@
+Question 2
+==========
+
+Assuming that we have a heap with size n, each object of size s words, and m objects in the root set:
+
+Mark-Sweep Collection
+---------------------
+The memory overhead for this algorithm is constant, at a value of 2 words - the "current" and "next" pointers for each object.  Thus, the memory overhead is (2 * n), plus whatever other overhead is required for the correct functioning of the algorithm.
+
+The run-time complexity is made up of two sections.  Firstly, the "mark" phase has complexity "m", since the search will access each pointer in each object once (note that we disregard the modification of pointers as an "access" - if one counts writing the pointers, see below).
+
+The "sweep" phase will access all objects once.  In the worst case, it will access a completely full heap (not all of which may be reachable from the root set), and thus the run-time for this phase is n.
+
+Thus, our total run-time complexity is (m + n).
+
+NOTE: If one counts writing to the pointers in the object tree as an "access", then the mark phase has a different complexity.  For each item, we advance, then switch (s - 1) times, and then retreat.  In the worst case, we do this for all items except the last level.  The various complexities are:
+    - Advancing: write one pointer in current node
+    - Switch: write 2 pointers in previous node (which is the same as the "current" node in the "Advancing" step).
+    - Retreat: rewrite one pointer in the previous node.
+
+Thus, for each node, in the worst case, we write (1 + (s - 1) * 2 + 1), or (2 + 2s - 2), or 2s pointers for an iteration of the algorithm.
+
+
+Copying Collection
+------------------
+The memory overhead is always twice the size of the heap, as, in the worst case where a garbage collection run frees no garbage, you need to maintain two heaps - the "from" and "to" heaps.  Thus, the memory overhead is (n * s).
+
+If you count the addition of a forwarding pointer to be overhead, then the memory overhead is (n * (s + 1)), where the "+ 1" term represents the addition of a forwarding pointer to every object.
+
+The run-time complexity is more complex.  In the worst case, we can have a full set of m objects, each of which has s distinct pointers to other objects (i.e. there are no nil pointers).  In this case, each reachable object will access all of s other objects (to check if the pointer has been forwarded).  Thus, we have m * s object accesses for a total of m reachable objects, which implies that each object is (on average) accessed s times.
+
+Thus, our worst-case run-time complexity is (m * s).
+
+
+Mark-Compact Collection
+-----------------------
+The memory overhead for mark-compact collection is 3 words per object - two words for the previos/next pointers, and one for the forwarding pointer.  Thus, the memory overhead is (3 * n).
+
+The run-time complexity can be determined by similar procedures as above.  The mark phase of this algorithm is the same (assuming we continue to use pointer reversal), at "m" (or more - see above).  The "sweep" phase, however, will be similar to that of the copying collector, with a worst-case run-time complexity of (m * s).
