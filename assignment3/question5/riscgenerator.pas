@@ -347,7 +347,12 @@ implementation
       begin
         if (x.mode = ConstClass) and (x.a = 0) then
         begin
-            writeln('Dead code detected!');
+            writeln('! Dead code detected at location: ', pc * 4);
+
+            { If we detect dead code, we just unconditionally skip it }
+            Put(BEQOP, 0, 0, x.a);
+            FixLink(x.b);
+            x.a := pc - 1;
         end
         else
         begin
