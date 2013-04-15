@@ -1,0 +1,70 @@
+In this case, assuming a properly balanced binary tree, the code will need to search at least log (base 2) cases to reach the proper case.  Thus, the time complexity is O(log_2 n), where n is the number of cases.
+
+    START:
+        { load the value of x into register 1 }
+        LDW     1,  0,      X_VARIABLE
+
+        { we maintain a minimum and maximum pointer into the table.
+          essentially, for an array jump_table[10], we set
+            min = 0
+            max = 10 - 1
+          This is all known at compile time.
+        }
+        ADDI    2,  0,      0
+        ADDI    3,  0,      len(JUMP_TABLE)
+
+    LOOP_START:
+        { if max < min, then we haven't found anything }
+        BLT     3,  2,      NOT_FOUND
+
+        { our search index = (min + max) / 2 }
+        ADD     4,  3,      2
+        DIVI    4,  4,      2
+
+        { each table is 2 words large, so we need to multiply
+          NOTE: we could combine this with the previous DIVI, but this
+          is explicitly stated here for clarity }
+        MULI    5,  4,      2
+
+        { load the value at this index }
+        LDW     5,  5,      JUMP_TABLE
+
+        { if the value is less than our compare, then our new
+          minimum is everything above this value.  note that we invert
+          the comparison - i.e. if NOT lesser than implies >=, so we jump
+          to the next comparison only if >= }
+        BGE     5,  1,      COMPARE_2
+        ADDI    2,  4,      1
+        BEQ     0,  0,      LOOP_START
+
+    COMPARE_2:
+        { if the value is larger, then our new max is everything
+          below this value. as above, we invert the comparison }
+        BLE     5,  1,      FOUND_CASE
+        SUBI    3,  1,      1
+        BEQ     0,  0,      LOOP_START
+
+    NOT_FOUND:
+        { not found - do stuff here.  we can either branch to the case, or
+          just inline the actual code here.  we just inline it.
+        ADDI    6,  0,      34
+        STW     6,  0,      Y_VARIABLE
+
+    FOUND_CASE:
+        { the current index matches - get the branch address and go there.
+          this index is into a table with values 8 words wide, and we want the
+          second word from this table }
+        MULI    5,  4,      2
+        ADDI    5,  5,      4
+        LDW     5,  5,      JUMP_TABLE
+
+        { go to this branch.  note that, since this is the last statement in
+          the case statement, all branch addresses can be set to be relative
+          to this address }
+        { not sure what operand to use to branch to here.  if we had an
+          immediate branch operand, I would do:
+            BIM   0,  0,      5
+          to branch forward by the amount given in register 5. }
+
+
+The table should be stored in sorted order for the above algorithm to work correctly.

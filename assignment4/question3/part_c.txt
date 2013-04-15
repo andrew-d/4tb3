@@ -1,0 +1,36 @@
+The RISC code would be something like the following:
+
+    START:
+        { load the value of x }
+        LDW     1,  0,      X_VARIABLE
+
+        { ensure that the value of x is inside the jump table }
+        ADDI    2,  0,      JUMP_TABLE_LOWER
+        BLT     1,  2,      NOT_FOUND
+        ADDI    2,  0,      JUMP_TABLE_HIGHER
+        BGE     1,  2,      NOT_FOUND
+
+        { load the address }
+        LDW     1,  1,      JUMP_TABLE
+
+        { branch to this address }
+        { not sure what opcode... }
+
+    NOT_FOUND:
+        { either branch to the code itself, or just inline it here.  e.g. }
+        ADDI    3,  0,      34
+        STW,    3,  0,      Y_VARIABLE
+
+
+The time complexity of this operation is constant - all operations take the same amount of time.  Note that the jump table MUST include sparse cases.  For the example given, it would be, for example:
+
+CASE_1_ADDRESS
+CASE_2_ADDRESS
+CASE_3_ADDRESS
+<null>
+CASE_5_ADDRESS
+CASE_6_ADDRESS
+CASE_7_ADDRESS
+<null>
+CASE_9_ADDRESS
+CASE_10_ADDRESS
